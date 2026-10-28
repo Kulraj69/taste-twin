@@ -179,7 +179,7 @@ export async function createPlan(input: PlanInput, options: PlanOptions = {}): P
 
   const narration = await narrateDays(days, { apiKey: options.nebiusApiKey, fetch: options.fetch, signal: options.signal });
   for (const day of days) day.intro = narration.intros[day.id];
-  const rankedTags = [...tasteTags].sort((a, b) => (b.affinity ?? -Infinity) - (a.affinity ?? -Infinity)).slice(0, 5);
+  const rankedTags = [...tasteTags].filter((tag) => !/hotel_rating|:price|rating/i.test(tag.type)).sort((a, b) => (b.affinity ?? -Infinity) - (a.affinity ?? -Infinity)).slice(0, 5);
   return {
     mode: qloo.mode, city: input.city, seeds, cuisineTags,
     persona: { title: rankedTags[0] ? `A little ${rankedTags[0].name.toLowerCase()}, a lot of you.` : "A taste all your own.", tags: rankedTags, traceId: tasteTraceId },

@@ -1,6 +1,6 @@
 # Taste Twin
 
-Live demo: https://taste-twin-mu.vercel.app (mock mode, synthetic data until the Qloo key is set)
+Live demo: https://taste-twin-mu.vercel.app (live mode: plans are generated from real Qloo hackathon API calls; the landing-page sample is still a labelled synthetic preview)
 
 
 **Your taste. Your next weekend.** A weekend-planning prototype built for the Qloo Agentic Hackathon. The current demo uses invented data to show how films, artists, books and dishes can become a weekend itinerary. Live Qloo recommendations and optional LLM narration have not been verified.
@@ -171,6 +171,6 @@ The first script stages named source/config files in the directory selected by `
 
 ## Submission status
 
-Not submitted in this run. `submission-payload.json` is a local field bundle, not an API request. Live Qloo use, eligibility and final field names remain unverified. The public app was checked read-only and still showed synthetic mode; local changes have not been deployed.
+Verified October 29, 2026: the hackathon key works against `https://hackathon.api.qloo.com`; `/search`, `/v2/tags` and `/v2/insights` returned live data for a Lisbon plan (12 calls, 0 errors) both locally and on the Vercel deployment. Demo recordings contain Qloo data and are kept out of the repository, per Qloo's terms.
 
 Official-page search results checked October 28, 2026 consistently show **October 30, 2026, 11:45 PM EDT = October 31, 2026, 9:15 AM IST**. Direct Devpost access is blocked by Cloudflare here, so verify the signed-in form before acting. The indexed overview says demo videos are **not required**; a local mock recording is nevertheless included. See the source/evidence notes in `submission-draft.md`.
