@@ -41,7 +41,8 @@ export async function handlePlanRequest(request: Request, options: {
   env?: { QLOO_API_KEY?: string; NEBIUS_API_KEY?: string };
 } = {}): Promise<Response> {
   const headers: Record<string, string> = { "Cache-Control": "no-store" };
-  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {
+  const mediaType = request.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase();
+  if (mediaType !== "application/json") {
     return Response.json({ error: "Please send your favourites as JSON." }, { status: 415, headers });
   }
   const env = options.env ?? process.env;

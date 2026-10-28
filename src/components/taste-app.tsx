@@ -171,14 +171,14 @@ export function TasteApp({ mode, preview }: { mode: Mode; preview: WeekendPlan }
           {!!plan.warnings.length && <details className="plan-notes"><summary>{plan.warnings.length} note{plan.warnings.length > 1 ? "s" : ""} about this trip <ChevronDown size={14} /></summary><ul>{plan.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details>}
           {!!errorTrace.length && <TracePanel trace={errorTrace} failedAttempt />}
           <TracePanel trace={plan.trace} synthetic={plan.mode === "mock"} />
-          <p className="narration-credit">{plan.narration === "nebius" ? "Day intros by Nemotron on Nebius. Taste receipts built directly from Qloo data." : "A little narration from us. Every taste receipt built from the returned data."}</p>
+          <p className="narration-credit">{plan.narration === "nebius" ? "Day intros by Nemotron on Nebius." : "Template day intros."} {plan.mode === "mock" ? "Synthetic receipts from invented data." : "Taste receipts built from Qloo data."}</p>
         </section>
       </div>
       <div className="hardware-bottom" aria-hidden="true"><span className="hardware-vents" /><span>PERSONAL TASTE COMPUTER</span><span className="hardware-controls"><i /><i /><i /></span></div>
       </div>
-      <section id="how-it-works" className="how-it-works"><span className="section-index">03 / THERE’S A METHOD TO YOUR TASTE</span><div className="how-grid"><div><span>01</span><h3>You bring the favourites.</h3><p>A film, a record, a book, a dish. Little clues to what makes you, you.</p></div><div><span>02</span><h3>Qloo finds the connections.</h3><p>Taste signals connect your interests across culture, food and places.</p></div><div><span>03</span><h3>Your twin keeps the receipts.</h3><p>Open any pick to see the signal, score and shared tags behind it.</p></div></div></section>
+      <section id="how-it-works" className="how-it-works"><span className="section-index">03 / THERE’S A METHOD TO YOUR TASTE</span><div className="how-grid"><div><span>01</span><h3>You bring the favourites.</h3><p>A film, a record, a book, a dish. Little clues to what makes you, you.</p></div><div><span>02</span><h3>{mode === "mock" ? "Try the synthetic taste adapter." : "Qloo finds the connections."}</h3><p>{mode === "mock" ? "Invented examples show the workflow. Live Qloo recommendations still need verification." : "Taste signals connect your interests across culture, food and places."}</p></div><div><span>03</span><h3>Your twin keeps the receipts.</h3><p>Open any pick to see the signal, score and shared tags behind it.</p></div></div></section>
     </main>
-    <footer className="site-footer"><Link className="brand" href="/"><TwinMark /><span>taste twin</span></Link><p>Made for your kind of weekend.</p><a href="https://qloo.com" target="_blank" rel="noreferrer">Powered by <strong>Qloo</strong> <ArrowUpRight size={13} /></a></footer>
+    <footer className="site-footer"><Link className="brand" href="/"><TwinMark /><span>taste twin</span></Link><p>Made for your kind of weekend.</p><a href="https://qloo.com" target="_blank" rel="noreferrer">{mode === "mock" ? "Built for " : "Powered by "}<strong>Qloo</strong> <ArrowUpRight size={13} /></a></footer>
     <ReceiptDrawer pick={receipt} onClose={() => setReceipt(null)} />
     <div className="visually-hidden" aria-live="polite">{pending ? "Planning your weekend." : !isPreview ? `Your weekend in ${plan.city} is ready with ${totalPicks} discoveries.` : "Sample weekend ready to explore."}</div>
   </>;

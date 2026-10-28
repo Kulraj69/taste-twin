@@ -270,6 +270,7 @@ details[open] > summary > .trace-summary > svg { transform: rotate(180deg); }
 .receipt-drawer { --focus: #245b50; color-scheme: light; padding: 14px; margin: 0 0 0 auto; width: min(100%, 530px); max-width: 100%; height: 100dvh; max-height: 100dvh; border: 0; border-left: 5px solid #b3ae96; background: linear-gradient(90deg, #c3baa2, #e2d8bf); color: #2c4035; overflow-y: auto; overscroll-behavior: contain; box-shadow: -15px 0 70px #06101e80; }
 .receipt-drawer::backdrop { background: #060e22c9; backdrop-filter: blur(4px); }
 .receipt-paper { min-height: 100%; padding: 24px; background: repeating-linear-gradient(0deg, #718f6c08 0 1px, transparent 1px 3px), #e5e7d4; border-top: 6px solid #485e4c; box-shadow: 0 0 0 1px #9caa8c, 0 4px 15px #5c665b33; overflow-wrap: anywhere; }
+.receipt-paper > .mode-badge { position: sticky; top: 0; z-index: 2; display: flex; width: fit-content; background: #e5e7d4; box-shadow: 0 0 0 6px #e5e7d4; }
 .drawer-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .drawer-top .eyebrow { font-size: 10px; letter-spacing: 1px; color: #4c6752; }
 .icon-button { display: grid; place-items: center; flex-shrink: 0; min-height: 44px; min-width: 44px; border: 1px solid #97a58b; background: #d1d8bf; color: #36513d; box-shadow: 1px 2px 0 #a2ab92; }

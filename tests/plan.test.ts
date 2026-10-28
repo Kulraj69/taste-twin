@@ -115,6 +115,20 @@ describe("POST /api/plan", () => {
     expect((await handlePlanRequest(new Request("http://local.test", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{" }))).status).toBe(400);
     expect((await handlePlanRequest(request({ favourites: Array(21).fill("x"), city: "Lisbon" }))).status).toBe(400);
   });
+  it.each(["application/jsonp", "application/json-invalid"])("rejects a misleading JSON media type: %s", async (contentType) => {
+    const plan = vi.fn(async () => mockPlan());
+    const response = await handlePlanRequest(new Request("http://local.test/api/plan", {
+      method: "POST", headers: { "Content-Type": contentType }, body: JSON.stringify(sample),
+    }), { env: {}, limiter: new PlanLimiter(), plan });
+    expect(response.status).toBe(415);
+    expect(plan).not.toHaveBeenCalled();
+  });
+  it("accepts a JSON media type with charset parameters", async () => {
+    const response = await handlePlanRequest(new Request("http://local.test/api/plan", {
+      method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify(sample),
+    }), { env: {}, limiter: new PlanLimiter() });
+    expect(response.status).toBe(200);
+  });
   it("enforces the CSV byte cap before planning", async () => {
     const plan = vi.fn(async () => mockPlan());
     const response = await handlePlanRequest(request({ ...sample, letterboxdCsv: "x".repeat(204_801) }), { plan });

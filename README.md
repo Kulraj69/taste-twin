@@ -3,27 +3,37 @@
 Live demo: https://taste-twin-mu.vercel.app (mock mode, synthetic data until the Qloo key is set)
 
 
-**Your taste. Your next weekend.** A Qloo Agentic Hackathon app that connects your favourite films, artists, books and dishes to five weekend discoveries in a city of your choice.
+**Your taste. Your next weekend.** A weekend-planning prototype built for the Qloo Agentic Hackathon. The current demo uses invented data to show how films, artists, books and dishes can become a weekend itinerary. Live Qloo recommendations and optional LLM narration have not been verified.
 
 - Friday: a bar to start the evening.
 - Saturday: a restaurant/cuisine discovery and an artist for your gig mood.
 - Sunday: a book and a cafe to read it in.
 
-Every ticket opens a **“Why you’ll like it” receipt**: resolved favourites → the exact Qloo interest query → the returned pick, affinity and shared tag IDs. A Taste Twin persona shows the top returned taste tags, and an expandable agent trace exposes every lookup, result count, duration, error and cache hit.
+Every ticket opens a **“Why you’ll like it” receipt**: resolved favourites → the adapter query → the returned pick, affinity and shared tag IDs. In mock mode these are invented fixtures, not Qloo evidence. A Taste Twin persona shows the top returned taste tags, and an expandable agent trace exposes every lookup, result count, duration, error and cache hit.
 
 Artist picks are music discoveries, not confirmed concerts. The suggested days are editorial slots, not reservations or opening-hour checks. Check current hours, menus and local event listings before going.
 
 ## Run locally
 
-Requires Node.js **20.19+** and npm. The app uses Next.js **16.4.3**, React **19.3.0**, TypeScript **5.9.3**, Tailwind **v4**, and Vitest **3.2.7**, following the setup in `../sarkari-speedrun`.
+Requires Node.js **20.19+, 22.13+, or 24+** on a supported even-numbered release line and npm. The app uses Next.js **16.4.3**, React **19.3.0**, TypeScript **5.9.3**, Tailwind **v4**, and Vitest **4.1.12**. No sibling repository is needed.
 
 ```bash
-npm install
-cp .env.example .env.local
+npm ci
 npm run dev
 ```
 
-Open <http://localhost:3000>. No API keys are needed for the complete synthetic demo.
+Open <http://localhost:3000>. No API keys or environment files are needed for the synthetic demo. Run with both provider variables unset; Next.js automatically loads local environment files if present.
+
+### Judge walkthrough (mock mode)
+
+1. Open the app → see “Demo mode: synthetic data” and five preview tickets. The initial preview makes no provider calls.
+2. Click **Midnight romantic**, **Analog wanderer** or **Curious daydreamer** → see a new synthetic weekend and a different persona for each preset.
+3. Open **Why you’ll like it** → inspect the synthetic seed IDs, exact query, unrounded affinity and shared tag IDs. Close with Escape or the close button.
+4. Expand **Agent trace**, then a step → see adapter parameters. The trace is returned with the completed plan; it is not streamed.
+5. Filter **Saturday** → see the restaurant and artist picks. The artist is a discovery, not a booked gig.
+6. Clear the favourites and upload a Letterboxd CSV → generate a CSV-only plan. Alternatively enter `dish: noodles` → generate a cuisine-only plan.
+
+The local browser regression script exercises this flow, the mobile layout and the sixth-request rate limit. See `demo/mock-flow-results.json`. No recommendation quality or real-world impact is established by these checks.
 
 For a local production run:
 
@@ -45,7 +55,7 @@ The interface is a moonlit retro terminal: original SVG mountains and stone ruin
 
 Set keys only in `.env.local` or the deployment environment; restart the server after changing them. Neither key is sent to the browser or included in the agent trace. No environment values or provider error bodies are logged.
 
-**Mock mode is entirely invented.** `src/mock/qloo.ts` contains authored fake names, IDs, tags, scores and properties in the same response envelopes used by Qloo. All fixture entity and tag IDs start with `mock-`; no real Qloo responses were copied, anonymized or committed. The UI labels these plans **“Demo mode: synthetic data.”** Arbitrary user inputs map to invented stand-ins, so demo results are illustrative. Three example tastes produce distinct personas and trips. The example input suggestions switch to real titles in live mode; these titles are not mock provider responses.
+**Mock mode is entirely invented.** `src/mock/qloo.ts` contains authored fake names, IDs, tags, scores and properties in the same response envelopes used by Qloo. All fixture entity and tag IDs start with `mock-`; no real Qloo responses were copied, anonymized or committed. The UI labels these plans **“Demo mode: synthetic data.”** Arbitrary user inputs map to invented stand-ins, so demo results are illustrative. Three example tastes produce distinct personas; place fixtures depend on the city. This is not a real recommendation engine. The example input suggestions switch to real titles in live mode; these titles are not mock provider responses.
 
 The initial page always shows a clearly labelled synthetic sample, even in live mode. Rendering, prefetching and builds never spend Qloo or Nebius calls. Submitting the form or clicking an example requests a new plan. A live Qloo failure never silently switches the result to mock data: partial plans leave failed stops open, and total failures return a helpful error.
 
@@ -132,7 +142,7 @@ npm run build
 
 The Vitest suite covers CSV parsing, input bounds, Qloo parameters and response shapes, exact receipts, HTTP transport/cache behavior, rate limits, narration fallbacks, the full mock pipeline and API, and controlled upstream failure/relaxation paths. All transport fixtures are synthetic, and tests require no credentials or network access. Actual provider availability and account permissions require a live-key smoke test.
 
-The requested Vitest 3.x version inherits development-only npm audit findings in Vitest’s mock-server/worker dependencies. `npm test` uses the local run mode and does not expose a Vitest server. Production dependencies have no reported audit findings at implementation time. Upgrade the test toolchain before exposing a test server to untrusted clients.
+The October 28 fresh-install check found dependency advisories in the previous Vitest 3 test toolchain. Vitest is now pinned to 4.1.12; post-upgrade verification evidence is in `demo/handoff-fixed/checks.json`. `demo/handoff/checks.json` preserves the earlier, affected dependency run. Dependency audit results describe that check only, not application security or live-provider safety.
 
 ## Vercel
 
@@ -143,4 +153,24 @@ The app is ready for a standard Vercel Next.js project. `vercel.json` specifies 
 MIT · Copyright © 2026 Kulraj Singh. See [LICENSE](LICENSE).
 
 ## Switching to live Qloo
-Put the hackathon key in `/workspace/devpost/secrets/qloo_key.txt` (or any file) and run `scripts/go-live.sh [path]`. It sets `QLOO_API_KEY` on Vercel without printing it and redeploys. With the key set, the badge flips to live and every pick comes from `hackathon.api.qloo.com`. Qloo responses are cached in server memory only and never written to this repo.
+Live validation is still blocked on access to Qloo. Kulraj must configure access through an approved secure channel; never paste keys into a draft, report or chat. A configured key selects the live adapter, but does not prove that it works. Verify seed resolution, category tags, recommendations and receipts with the real service before claiming live integration. Keep the disclosure until then.
+
+Do not run `scripts/go-live.sh` as a local check: it changes the remote deployment. Pushing, deploying and submitting require separate explicit approval.
+
+## Isolated local verification and recording
+
+For this workspace, where existing environment files must not be read:
+
+```bash
+python scripts/local-check.py --serve
+# In another terminal, after the production server is ready:
+python scripts/mock-flow.py
+```
+
+The first script stages named source/config files in the directory selected by `TMPDIR`, reuses installed dependencies with hardlinks, and starts subprocesses with an allowlisted environment. It runs `npm test`, `npm run lint`, `npm run build`, then `npm run typecheck`; no dotenv copying occurs. Add `--fresh` to install with `npm ci` instead of reusing dependencies. It serves only `127.0.0.1:3101`. Restart it before repeating the browser test because quotas are in memory. Both scripts accept `--output demo/handoff` to preserve earlier evidence. The second script needs Python Playwright plus installed Chromium and records the real local app. Files in `demo/` are local evidence, not a public upload.
+
+## Submission status
+
+Not submitted in this run. `submission-payload.json` is a local field bundle, not an API request. Live Qloo use, eligibility and final field names remain unverified. The public app was checked read-only and still showed synthetic mode; local changes have not been deployed.
+
+Official-page search results checked October 28, 2026 consistently show **October 30, 2026, 11:45 PM EDT = October 31, 2026, 9:15 AM IST**. Direct Devpost access is blocked by Cloudflare here, so verify the signed-in form before acting. The indexed overview says demo videos are **not required**; a local mock recording is nevertheless included. See the source/evidence notes in `submission-draft.md`.
