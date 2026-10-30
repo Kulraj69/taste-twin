@@ -15,6 +15,7 @@ export async function narrateDays(days: WeekendDay[], options: { apiKey?: string
   const fallback = { intros: { ...templates }, source: "template" as const };
   if (!options.apiKey?.trim()) return fallback;
   try {
+    options.signal?.throwIfAborted();
     const timeout = AbortSignal.timeout(8_000);
     const response = await (options.fetch ?? fetch)(NEBIUS_URL, {
       method: "POST",
@@ -27,15 +28,27 @@ export async function narrateDays(days: WeekendDay[], options: { apiKey?: string
         temperature: 0.7,
         chat_template_kwargs: { enable_thinking: false },
         messages: [
-          { role: "system", content: '/no_think\nWrite three playful, short weekend mood intros. Return only JSON with keys "friday", "saturday", "sunday" and a single sentence (under 160 characters) per value. No names, venues, dates, facts, ratings, recommendations or explanations of taste. No markdown.' },
+          { role: "system", content: '/no_think\nWrite three playful, short weekend mood intros. Return only JSON with keys "friday", "saturday", "sunday" and a single sentence (at most 180 characters) per value. No names, venues, dates, facts, ratings, recommendations or explanations of taste. No markdown.' },
           { role: "user", content: JSON.stringify(days.map((day) => ({ day: day.id, activities: day.picks.map((pick) => pick.kind) }))) },
         ],
       }),
     });
-    if (!response.ok) return fallback;
+    if (!response.ok) {
+      void response.body?.cancel().catch(() => {});
+      return fallback;
+    }
     const body = record(await response.json());
+    options.signal?.throwIfAborted();
     const choices = Array.isArray(body.choices) ? body.choices : [];
-    const content = record(record(choices[0]).message).content;
+    const choice = record(choices[0]);
+    const message = record(choice.message);
+    // Valid-looking JSON can still be a truncated, refused or tool-call answer.
+    if (body.error != null || choices.length !== 1 || choice.finish_reason !== "stop"
+      || message.role !== "assistant"
+      || (message.refusal != null && message.refusal !== "")
+      || (message.tool_calls != null && (!Array.isArray(message.tool_calls) || message.tool_calls.length > 0))
+      || message.function_call != null) return fallback;
+    const content = message.content;
     if (typeof content !== "string" || /<\/?think>/i.test(content)) return fallback;
     const parsed = record(JSON.parse(content));
     const intros = { ...templates };

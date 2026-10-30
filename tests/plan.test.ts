@@ -32,6 +32,36 @@ describe("mock plan end to end", () => {
     expect(plan.trace.some((step) => step.params["filter.type"] === "urn:tag")).toBe(true);
     expect(plan.trace.every((step) => ["/search", "/v2/tags", "/v2/insights"].includes(step.endpoint))).toBe(true);
   });
+  it.each(["stop", "length"])("keeps every pick and receipt independent of %s narration", async (finish_reason) => {
+    const baseline = await mockPlan();
+    const intros = {
+      friday: "Visit Invented Bistro at 8pm; your reservation is confirmed.",
+      saturday: "Take a detour.",
+      sunday: "Turn a page.",
+    };
+    const fetcher = vi.fn<typeof fetch>(async () => Response.json({ choices: [{
+      finish_reason, message: { role: "assistant", content: JSON.stringify(intros) },
+    }] }));
+    const narrated = await createPlan(sample, {
+      qloo: new QlooClient(), nebiusApiKey: "synthetic-test-only", fetch: fetcher,
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(narrated.narration).toBe(finish_reason === "stop" ? "nebius" : "template");
+    expect(narrated.days.map((day) => day.intro)).toEqual(finish_reason === "stop"
+      ? Object.values(intros) : baseline.days.map((day) => day.intro));
+    // Timing is measured on each run; all other evidence must stay identical.
+    const evidence = (plan: typeof baseline) => ({
+      ...plan,
+      narration: undefined,
+      days: plan.days.map((day) => ({ ...day, intro: undefined })),
+      trace: plan.trace.map((step) => ({ ...step, ms: undefined })),
+    });
+    expect(evidence(narrated)).toEqual(evidence(baseline));
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(JSON.parse(sent.messages[1].content)).toEqual(baseline.days.map((day) => ({
+      day: day.id, activities: day.picks.map((pick) => pick.kind),
+    })));
+  });
   it("supports CSV-only and cuisine-only weekends", async () => {
     const csv = "Date,Name,Year,Letterboxd URI,Rating\n2026-01-01,The Last Tram to Marigold,2021,https://example.invalid/film,5";
     const csvPlan = await createPlan({ favourites: [], city: "Tokyo", letterboxdCsv: csv }, { qloo: new QlooClient() });

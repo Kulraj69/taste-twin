@@ -84,6 +84,8 @@ def main():
                 assert receipt['affinity'] == pick['entity']['affinity']
                 assert receipt['signal']['params'] == next(s['params'] for s in plan['trace'] if s['id'] == receipt['signal']['traceId'])
             expect(page.locator('#weekend-title')).to_contain_text(plan['city'])
+            expect(page.locator('.result-context')).to_contain_text(
+                f"{len(plan['cuisineTags'])} cuisine " + ('interest.' if len(plan['cuisineTags']) == 1 else 'interests.'))
             expect(page.locator('.pick-ticket')).to_have_count(5)
             plans.append({'city': plan['city'], 'persona': plan['persona']['title'],
                           'picks': [pick['entity']['name'] for pick in picks], 'trace_steps': len(plan['trace'])})

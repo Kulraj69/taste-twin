@@ -19,3 +19,4 @@ playwright-report/
 TASK.md
 .vercel
 demo/live/
+__pycache__/

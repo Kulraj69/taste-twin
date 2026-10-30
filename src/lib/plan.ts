@@ -57,6 +57,7 @@ function pickDetail(entity: QlooEntity, kind: PickKind): string {
 }
 
 export async function createPlan(input: PlanInput, options: PlanOptions = {}): Promise<WeekendPlan> {
+  options.signal?.throwIfAborted();
   const qloo = options.qloo ?? new QlooClient({ apiKey: process.env.QLOO_API_KEY, signal: options.signal });
   const collected = collectFavourites(input);
   const warnings = [...collected.warnings];
@@ -66,6 +67,7 @@ export async function createPlan(input: PlanInput, options: PlanOptions = {}): P
 
   // Stage 1: resolve titles and dishes, with bounded concurrent requests.
   for (let offset = 0; offset < collected.favourites.length; offset += 5) {
+    options.signal?.throwIfAborted();
     const batch = collected.favourites.slice(offset, offset + 5);
     const resolved = await Promise.allSettled(batch.map(async (favourite) => {
       if (favourite.kind === "dish") {
@@ -75,6 +77,7 @@ export async function createPlan(input: PlanInput, options: PlanOptions = {}): P
       const result = await qloo.entities("/search", buildSearchParams(favourite), `Resolve favourite: ${favourite.query}`);
       return { favourite, entity: chooseSeed(result.items, favourite), step: result.step };
     }));
+    options.signal?.throwIfAborted();
     for (let i = 0; i < resolved.length; i++) {
       const result = resolved[i];
       if (result.status === "rejected") {
@@ -110,6 +113,7 @@ export async function createPlan(input: PlanInput, options: PlanOptions = {}): P
     qloo.tags("/v2/insights", buildInsightParams({ type: "tag", ...signal }), "Read your shared taste tags"),
     ...["bar", "restaurant", "cafe"].map((kind) => qloo.tags("/v2/tags", buildTagParams(kind), `Find valid ${kind} tags`)),
   ]);
+  options.signal?.throwIfAborted();
   let tasteTags: QlooTag[] = [];
   let tasteTraceId: string | null = null;
   if (discovery[0].status === "fulfilled") {
@@ -148,11 +152,13 @@ export async function createPlan(input: PlanInput, options: PlanOptions = {}): P
     if (slot.kind === "restaurant" && cuisineTags[0]) filterTagIds.push(cuisineTags[0].id);
     const params = buildInsightParams({ type: slot.type, ...signal, city: input.city, filterTagIds });
     let result = await qloo.entities("/v2/insights", params, `Discover ${slot.kind} for ${days[slot.day].name}`);
+    options.signal?.throwIfAborted();
     if (!result.items.length && slot.kind === "restaurant" && filterTagIds.length > 1) {
       result = await qloo.entities("/v2/insights", buildInsightParams({ type: "place", ...signal, city: input.city, filterTagIds: [category!.id] }), "Broaden lunch: keep city and restaurant category");
     }
     return result;
   }));
+  options.signal?.throwIfAborted();
   const chosen = new Set<string>();
   for (let index = 0; index < recommendations.length; index++) {
     const result = recommendations[index];
@@ -178,6 +184,7 @@ export async function createPlan(input: PlanInput, options: PlanOptions = {}): P
   if (!days.some((day) => day.picks.length)) throw new InputError("No weekend picks matched this city and taste. Try another city or a few different favourites.", 422);
 
   const narration = await narrateDays(days, { apiKey: options.nebiusApiKey, fetch: options.fetch, signal: options.signal });
+  options.signal?.throwIfAborted();
   for (const day of days) day.intro = narration.intros[day.id];
   const rankedTags = [...tasteTags].filter((tag) => !/hotel_rating|:price|rating/i.test(tag.type)).sort((a, b) => (b.affinity ?? -Infinity) - (a.affinity ?? -Infinity)).slice(0, 5);
   return {

@@ -147,6 +147,7 @@ export class QlooClient {
     };
     this.trace.push(step);
     try {
+      this.signal?.throwIfAborted();
       let body: unknown;
       if (this.mode === "mock") body = mockResponse(endpoint, params);
       else {
@@ -164,11 +165,18 @@ export class QlooClient {
             signal: this.signal ? AbortSignal.any([this.signal, timeout]) : timeout,
           });
           // Search documents 404 as "No results". Other endpoints still fail.
-          if (response.status === 404 && endpoint === "/search") body = { success: true, results: [] };
+          if (response.status === 404 && endpoint === "/search") {
+            void response.body?.cancel().catch(() => {});
+            body = { success: true, results: [] };
+          }
           else {
-            if (!response.ok) throw new QlooError(response.status === 429 ? 503 : 502);
+            if (!response.ok) {
+              void response.body?.cancel().catch(() => {});
+              throw new QlooError(response.status === 429 ? 503 : 502);
+            }
             body = await response.json();
           }
+          this.signal?.throwIfAborted();
           // Validate before caching; error payloads must never turn into cached success.
           parser(body);
           this.cache.set(cacheKey, body, this.clock());

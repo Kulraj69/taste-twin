@@ -1,9 +1,9 @@
 # Taste Twin
 
-Live demo: https://taste-twin-mu.vercel.app (live mode: plans are generated from real Qloo hackathon API calls; the landing-page sample is still a labelled synthetic preview)
+Hosted demo: https://taste-twin-mu.vercel.app (configured for live Qloo; successful generation was reported in the October 29 operator handoff, not re-run for this local revision). The landing-page sample is a labelled synthetic preview. See [verification boundaries](#live-verification-boundaries).
 
 
-**Your taste. Your next weekend.** A weekend-planning prototype built for the Qloo Agentic Hackathon. The current demo uses invented data to show how films, artists, books and dishes can become a weekend itinerary. Live Qloo recommendations and optional LLM narration have not been verified.
+**Your taste. Your next weekend.** A weekend-planning prototype built for the Qloo Agentic Hackathon. Films, artists, books and dishes become signals for five discoveries. The hosted app is configured for live Qloo; the initial preview and key-free local demo use labelled invented data. Historical live footage and current local tests have different scopes; see Submission status below.
 
 - Friday: a bar to start the evening.
 - Saturday: a restaurant/cuisine discovery and an artist for your gig mood.
@@ -93,6 +93,10 @@ Live responses are cached in a private server-side `Map` for **10 minutes**, up 
 
 Qloo calls time out after 12 seconds, narration after 8 seconds, with a 52-second request deadline inside a 60-second Vercel function budget. A partial result can still succeed when individual calls fail.
 
+Uploads must finish within four seconds. A disconnected request interrupts upload waiting and propagates cancellation to provider fetches; planning checks cancellation between stages and before a lunch retry. Rejected uploads do not consume plan quota. Cleanup does not wait for a broken upload source to acknowledge cancellation. These are local Node/Web Streams checks, not proof of hosted disconnect delivery or stopped provider billing. A custom fetch/client must honor its abort signal; an arbitrary non-cooperative injected promise is not forcibly terminated.
+
+If calling `createPlan` directly with an existing `QlooClient`, construct that client with the same signal supplied to the plan. Stage checks alone cannot cancel an existing client's active requests. The HTTP handler wires both to the shared request signal.
+
 ## Narration
 
 `src/lib/llm.ts` calls the OpenAI-compatible endpoint:
@@ -105,7 +109,7 @@ system prompt: /no_think
 chat_template_kwargs: { enable_thinking: false }
 ```
 
-One request writes a short intro for each day. The model receives only day labels and activity kinds, not the CSV, favourites, scores or receipts. Its output never selects entities or modifies evidence. Templates are the fallback on every narration failure.
+One request writes a short intro for each day. The model receives only day labels and activity kinds, not the CSV, favourites, scores or receipts. Its output never selects entities or modifies evidence. Generated intros are visibly labelled unverified mood text, not booking or venue information: the prompt requests no facts, but the code does not semantically verify that instruction. Templates are the fallback on narration failure. The local completion guard requires one assistant answer with `finish_reason=stop`, no refusal, no tool/function call and valid intro JSON. Synthetic tests verify this guard; its compatibility with current live responses has not been re-tested.
 
 ## API and input limits
 
@@ -152,8 +156,8 @@ The app is ready for a standard Vercel Next.js project. `vercel.json` specifies 
 
 MIT · Copyright © 2026 Kulraj Singh. See [LICENSE](LICENSE).
 
-## Switching to live Qloo
-Live validation is still blocked on access to Qloo. Kulraj must configure access through an approved secure channel; never paste keys into a draft, report or chat. A configured key selects the live adapter, but does not prove that it works. Verify seed resolution, category tags, recommendations and receipts with the real service before claiming live integration. Keep the disclosure until then.
+## Live verification boundaries
+The October 29 operator handoff reports successful Qloo calls and Nebius narration. Existing local live footage is supplementary historical evidence, not a repeatability or recommendation-quality study. The saved recording result contains a step count and pick names, not raw status or narration evidence; do not infer zero errors or a narration provider from that JSON alone. Never paste keys into a draft, report or chat.
 
 Do not run `scripts/go-live.sh` as a local check: it changes the remote deployment. Pushing, deploying and submitting require separate explicit approval.
 
@@ -169,8 +173,23 @@ python scripts/mock-flow.py
 
 The first script stages named source/config files in the directory selected by `TMPDIR`, reuses installed dependencies with hardlinks, and starts subprocesses with an allowlisted environment. It runs `npm test`, `npm run lint`, `npm run build`, then `npm run typecheck`; no dotenv copying occurs. Add `--fresh` to install with `npm ci` instead of reusing dependencies. It serves only `127.0.0.1:3101`. Restart it before repeating the browser test because quotas are in memory. Both scripts accept `--output demo/handoff` to preserve earlier evidence. The second script needs Python Playwright plus installed Chromium and records the real local app. Files in `demo/` are local evidence, not a public upload.
 
-## Submission status
+## Current local evidence — October 30
 
-Verified October 29, 2026: the hackathon key works against `https://hackathon.api.qloo.com`; `/search`, `/v2/tags` and `/v2/insights` returned live data for a Lisbon plan (12 calls, 0 errors) both locally and on the Vercel deployment. Demo recordings contain Qloo data and are kept out of the repository, per Qloo's terms.
+The request-lifetime verification is indexed in `demo/request-lifetime/`:
+- `final-verification.json`: command exit codes, source comparisons, verifier/recorder hashes and measured video duration.
+- `final-tests.log`, `final-lint.log`, `final-build.log`, `final-typecheck.log`: full check output; dependencies reused, not a fresh install.
+- `mock-flow-results.json`, `taste-twin-mock.mp4`, `script.md`, `media-probe.json`: actual labelled synthetic production walkthrough and media details.
 
-Official-page search results checked October 28, 2026 consistently show **October 30, 2026, 11:45 PM EDT = October 31, 2026, 9:15 AM IST**. Direct Devpost access is blocked by Cloudflare here, so verify the signed-in form before acting. The indexed overview says demo videos are **not required**; a local mock recording is nevertheless included. See the source/evidence notes in `submission-draft.md`.
+`tests/request-lifetime.test.ts` covers upload/disconnect cleanup, cooperative provider timers during fetch/body waits, unused response-body cancellation and stage/cache guards. These are synthetic transport checks, not hosted billing guarantees. To repeat the full capture after `local-check.py` creates a stage, run `python scripts/verify-lifetime.py /absolute/taste-twin-check-stage` using the exact scratch path printed by that script. The verifier also requires ffmpeg/ffprobe and Python Playwright with Chromium; it reuses dependencies and binds loopback ports 3117/3118. It overwrites only the request-lifetime evidence directory's named outputs.
+
+Earlier reconciliation checks remain in `demo/reconciliation-final/`:
+- `checks.json`: exact test/lint/build/typecheck output and source hashes.
+- `mock-flow-results.json`: real production-browser synthetic walkthrough.
+- `narration-warning.json`: controlled warning visibility and first receipt display, not a live call or receipt-immutability proof.
+- `taste-twin-mock.mp4`, `script.md`, `ffprobe.json`: actual labelled synthetic recording, script and measured media details.
+
+`tests/plan.test.ts` separately compares every pick/receipt and non-timing evidence through `createPlan` with completed and rejected synthetic narration. Arbitrary mood prose is still not fact-checked. Older root and `handoff-fixed` evidence remains historical. None of these local artifacts proves deployed-source parity, live compatibility or usefulness.
+
+## Submission notes
+
+Deadline checks, deployment-parity caveats and the operator handoff live in `OPERATOR-NOTES.md`; this README sticks to what the project does and how to run it. For the honest line between the labelled synthetic demo and live Qloo evidence, see [Live verification boundaries](#live-verification-boundaries).

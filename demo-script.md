@@ -14,9 +14,9 @@ Source: the real local production app, driven by `scripts/mock-flow.py`. The vid
 
 The browser check also tests a 390px mobile viewport, cuisine-only generation and rate-limit handling. These checks are saved in `demo/mock-flow-results.json`; the desktop recording does not claim to show the mobile flow. Mobile evidence is `demo/weekend-mobile.png`.
 
-## Optional narration for a later edit
+## Optional narration for the synthetic recording (October 29 revision)
 
-“This is Taste Twin, a weekend planner with a receipt for every pick. This recording uses invented data, not live Qloo recommendations. I upload a synthetic film diary and choose Tokyo. The app gives me places, an artist and a book. The artist is a discovery, not a booked gig. The receipt shows the resolved input, query, score and shared tags. The trace makes those steps inspectable. The local workflow works; the next step is testing the adapter with Qloo.”
+“This is Taste Twin, a weekend planner with a receipt for every pick. This recording uses invented data, not live Qloo recommendations. I upload a synthetic film diary and choose Tokyo. The app gives me places, an artist and a book. The artist is a discovery, not a booked gig. The receipt shows the resolved input, query, score and shared tags. The trace makes those steps inspectable. This shows the local workflow, not recommendation quality or current live-provider compatibility.”
 
 ## Reproduce locally
 

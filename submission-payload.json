@@ -1,0 +1,61 @@
+{
+  "artifact_type": "superseded_historical_draft_do_not_use",
+  "superseded_by": "/workspace/devpost/hermes-reports/submit-ready/taste-twin.md",
+  "warning": "Historical October28 mock-only text below is retained for audit only. It is NOT current form content. October29 operator reports live access; neither key absence nor lack of entry-completion approval below is current. Read canonical handoff; no action is authorized by this file.",
+  "ready_to_submit": false,
+  "submission_performed": false,
+  "project": {
+    "name": "Taste Twin",
+    "tagline": "A weekend planner with a receipt for every pick. Try the clearly labelled synthetic demo.",
+    "demo_url": "https://taste-twin-mu.vercel.app",
+    "repository_url": "https://github.com/Kulraj69/taste-twin",
+    "license": "MIT",
+    "video_url": null,
+    "description_sections": {
+      "Inspiration": "A list of popular places is not the same as a weekend you would choose. Taste Twin explores whether favourites from films, music and books can help shape a trip. The prototype is built around a Qloo adapter, with receipts that make its inputs and outputs inspectable.",
+      "What it does": "Type favourites or upload a Letterboxd CSV, then choose a city. The demo returns a Friday-to-Sunday itinerary: a bar, a restaurant, an artist discovery, a book and a café. Artist picks are not confirmed gigs. Each ticket opens a receipt with resolved inputs, query parameters, affinity and shared tag IDs. In the current demo, all of that evidence is synthetic. The trace shows calls to the local adapter and appears when planning finishes; it is not streamed.",
+      "How we built it": "- Agent loop: resolve seeds with `/search`, find cuisine and place-category tags with `/v2/tags`, pull cross-domain picks from `/v2/insights` (places with `filter.location.query`, artists, books), and run taste analysis on the seeds for the shared-tag receipts.\n- Receipts are built deterministically from adapter responses. Optional NVIDIA Nemotron narration through Nebius Token Factory is implemented but unverified live. The local demo uses deterministic day intros, not an LLM.\n- Next.js on Vercel, rate limits per IP and per day, server-only cache, synthetic mock mode for when no key is set.\n- Dreamcore 80s terminal UI: beige hardware, CRT glow, scanlines, printed receipts.",
+      "Challenges": "The receipt had to show evidence, not just a convincing explanation. We kept the returned affinity score unchanged and matched shared tags by ID, not by name. The score belongs to the whole query, so we don't present it as proof that one favourite caused a recommendation. The language model only writes day intros; it cannot change the picks or receipts.\n\nMissing results needed an honest path too. If the restaurant search is too narrow, the agent tries once without the cuisine filter but keeps the city and restaurant category. If a stop still has no result, it stays open rather than getting an invented replacement. We don't have a Qloo key yet, so the demo uses clearly labelled synthetic data. Local tests cover the query shapes, receipts and failure paths, but live Qloo behaviour still needs checking with a key.\n\nDuring this local pass, regression tests showed that the JSON gate accepted `application/jsonp` and `application/json-invalid` as JSON. It now compares the exact media type and still accepts a charset parameter. The new negative cases failed before the fix and passed afterward. Browser checks also exercised CSV-only and cuisine-only plans, receipt open/close, the mobile layout and the rate-limit message. These observations are local evidence, not a live integration claim.",
+      "What's next": "First, validate the Qloo adapter against the real service and check whether the picks are useful. Live access is a prerequisite to claiming a Qloo-powered result. Sharing or group-taste features can wait."
+    },
+    "built_with": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Vitest"
+    ],
+    "integration_disclosure": "Qloo adapter implemented; live Qloo and Nebius use unverified. Current demonstration uses invented fixtures and template narration."
+  },
+  "deadline": {
+    "source_time": "2026-10-30T23:45:00-04:00",
+    "india_time": "2026-10-31T09:15:00+05:30",
+    "verification": "Corroborated in official-page search results on 2026-10-28. Direct browser access hit Cloudflare. Verify current submission form.",
+    "sources": [
+      "https://qloo.devpost.com/",
+      "https://qloo.devpost.com/details/dates",
+      "https://qloo.devpost.com/rules"
+    ]
+  },
+  "video_requirement": "Indexed overview says not required; direct form not verified. Local synthetic recording is optional.",
+  "unknowns": {
+    "authenticated_form_schema": null,
+    "entrant_details_and_team": null,
+    "entrant_eligibility_confirmation": null,
+    "terms_acceptance": null,
+    "synthetic_only_entry_eligibility": null,
+    "live_qloo_verification": null,
+    "public_repository_license_visibility_current": null,
+    "final_submission_approval": null
+  },
+  "blockers": [
+    "Live Qloo validation not completed; mock-only eligibility is not established.",
+    "Local code and documentation changes are not pushed or deployed.",
+    "Direct deadline/form confirmation and entrant approval required."
+  ],
+  "local_evidence": {
+    "checks": "demo/checks.json",
+    "browser_checks": "demo/mock-flow-results.json",
+    "video": "demo/taste-twin-mock.mp4"
+  }
+}
